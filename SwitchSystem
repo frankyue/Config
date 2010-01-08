@@ -1,0 +1,86 @@
+#!/bin/sh
+
+cd /home/frankyue/
+sudo su
+
+#Config SET
+DATA="$(date)"
+config_file="/home/frankyue/SystemSwitch"
+System_karmic="Ubuntu 9.10"
+Config_Store="/home/frankyue/Backup/Switch_store"
+Config_Tmp="/home/frankyue/Backup/Switch_store_tmp"
+log_file="/home/frankyue/pro/bash/Switch_System/log"
+#Tmp_dir="$(date +%m-%d_%H_Switch_use)"
+
+#Get the the config and current environment
+System_current="$(cat /etc/issue.net)"
+config_lastest="$(cat $config_file | awk "NR==2")"
+
+Switch_system()
+{	
+	AllFile="$(ls -aI . -I .. -I .gvfs)"
+	mkdir $Config_Tmp
+
+	for i in $AllFile;do
+	check="$(expr substr $i 1 1)"
+#	back_sign="$(expr substr $i 2 4)"
+
+	if [ "$check" = "." ] ;then
+#		if [ "$back_sign" = "back" ];then 
+#			echo "File Bak to Normal -------- $i" >> $log_file
+#			mv $i $Tmp_dir/
+#			mv $Tmp_dir/$i $Tmp_dir/."$(expr substr $i 6 "$(expr length $i)")"
+#			mv $i ."$(expr substr $i 6 "$(expr length $i)")"
+			mv $i $Config_Tmp
+#		else
+			echo "File Normal to Bak -------- $i" >> $log_file
+#			mv $i .back"$(expr substr $i 2 "$(expr length $i)")"
+#			mv $i $Config_Tmp
+#		fi
+	fi
+
+	done
+	
+	cd $Config_Store
+	Tmp_file="$(ls -aI . -I .. )"
+	mv $Tmp_file /home/frankyue/
+	echo "File Bak Restore Follow :\n$Tmp_file " >> $log_file
+	mv -Tf $Config_Tmp $Config_Store
+	
+}
+#
+#Start to switch or keep back
+#check the current envirmont
+#If it is karmic 
+if [ "$System_karmic" = "$System_current" ];then
+	if [ "$config_lastest" = "intrepid" ];then
+		#change all of the files which started with "." in home/$USER
+		echo "$DATA ----- Lastest login is intrepid,Now change to karmic environment" >> $log_file
+		Switch_system
+		#Change the configfile
+		sed "2s/intrepid/karmic/g" $config_file > test
+		mv test $config_file
+	else
+		echo "$DATA ----- Lastest login is karmic the same system now" >> $log_file
+	fi
+else
+	if [ "$config_lastest" = "karmic" ];then
+		#change all of the files which started with "." in home/$USER
+		echo "$DATA ----- Lastest login is karmic,Now change to intrepid environment" >> $log_file
+		Switch_system
+		#Change the configfile
+		sed "2s/karmic/intrepid/g" $config_file > test
+		mv test $config_file
+	else
+		echo "$DATA ----- Lastest login is intrepid the same system now" >> $log_file
+	fi	
+fi
+
+
+
+
+
+
+
+
+
